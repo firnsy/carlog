@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Canvas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Bootstrap -->
+  <link href="/css/bootstrap.min.css" rel="stylesheet" media="screen">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
+  <link href="/css/carlog.css" rel="stylesheet" media="screen">
+</head>
+<body>
+  <noscript style="">
+    <div>
+      <h1 class="carlog-logo">KORORA<span>PROJECT</span></h1>
+      <h3>Oops! JavaScript is not enabled!</h3>
+      <div class="hr"></div>
+      <div class="">
+        <p>In order to get the intended Korora Project experience you must enable JavaScript.</p>
+        <p>We have carefully crafted an innovative experience for Korora community and we hope you find us trustworthy enough to enable try it out in it's full glory.</p>
+        <p>Thankyou for your consideration.</p>
+      </div>
+    </div>
+  </noscript>
+  <div class="page-container">
+    <!-- navigation -->
+    <nav id="korobar" class="navbar navbar-default" role="navigation">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-primary-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <div class="navbar-brand carlog-logo-light-48"></div>
+      </div>
+
+      <!-- navigation content for toggling -->
+      <div class="collapse navbar-collapse navbar-primary-collapse">
+        <ul class="nav navbar-nav">
+          <li class="nav-home"><a href="/">Home</a></li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+          <li class="dropdown">
+          <a href="" class="dropdown-toggle" data-toggle="dropdown"><span class="icon-user"></span> <%= authenticated_user->user_name %><b class="caret"></b></a>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="/">Settings</a></li>
+              <li><a href="/deauthenticate">Logout</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="page-content">
+      <div class="hr"></div>
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-12">
+            <h1>Vehicles</h1>
+            <div class="tabbable">
+              <ul class="nav nav-tabs">
+                <li class="active"><a href="#vehicleOverview" data-toggle="tab">View</a> </li>
+                <li><a href="#vehicleAdd" data-toggle="tab">Add</a> </li>
+              </ul>
+              <div class="tab-content">
+                <div class="tab-pane active" id="vehicleOverview">
+                  <div class="container row-table">
+                    <div class="row row-header">
+                      <div class="col-sm-3">
+                        <h4>Registration</h4>
+                      </div>
+                      <div class="col-sm-6">
+                        <h4>Description</h4>
+                      </div>
+                      <div class="col-sm-3">
+                      </div>
+                    </div>
+% foreach my $v ( @{ $vehicles } ) {
+                    <div class="row row-entry">
+                      <div class="col-sm-3">
+                        <p><%= $v->registration %></p>
+                      </div>
+                      <div class="col-sm-6">
+                        <p><%= $v->description %></p>
+                      </div>
+                      <div class="col-sm-3">
+%   if( $v->trip_active ) {
+                        <a href="/vehicle/<%= $v->id %>/trips/stop" class="btn btn-sm btn-danger"> <b class="icon-stop"></b> </a>
+%   } else {
+                        <a href="/vehicle/<%= $v->id %>/trips/start" class="btn btn-sm btn-success"> <b class="icon-play"></b> </a>
+%   }
+                      </div>
+                    </div>
+% }
+                  </div>
+                </div>
+                <div class="tab-pane" id="vehicleAdd">
+                  <form role="form" action="/vehicles" method="post">
+                    <div class="form-group">
+                      <label for="registration">Registration</label>
+                      <input type="text" class="form-control" id="registration" name="registration" placeholder="Enter registration">
+                    </div>
+                    <div class="form-group">
+                      <label for="vehicleDescription">Description</label>
+                      <input type="text" class="form-control" id="vehicleDescription" name="description" placeholder="Description">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Vehicle</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-12">
+            <h1>Trips</h1>
+            <div class="container row-table">
+              <div class="row row-header">
+                <div class="col-sm-4">
+                  <h4>Start</h4>
+                </div>
+                <div class="col-sm-1">
+                  <h4 class="text-center">ODO</h4>
+                </div>
+                <div class="col-sm-4">
+                  <h4>End</h4>
+                </div>
+                <div class="col-sm-1">
+                  <h4 class="text-center">ODO</h4>
+                </div>
+                <div class="col-sm-2">
+                  <h4 class="text-right">Total</h4>
+                </div>
+              </div>
+% foreach my $t ( @{ $trips } ) {
+              <div class="row row-entry">
+                <div class="col-sm-4">
+                  <p><%= $t->dtg_start %></p>
+                </div>
+                <div class="col-sm-1">
+                  <p class="text-center"><%= $t->odo_start %></p>
+                </div>
+                <div class="col-sm-4">
+                  <p><%= $t->dtg_end %></p>
+                </div>
+                <div class="col-sm-1">
+                  <p class="text-center"><%= $t->odo_end %></p>
+                </div>
+                <div class="col-sm-2">
+                  <p class="text-right"><%= $t->odo_end > 0 ? ( $t->odo_end - $t->odo_start ) : "--" %> km</p>
+                </div>
+              </div>
+% }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-8 col-md-8 col-lg-8">
+          <p class="copyright">BY <a href="http://www.firnsy.com">FIRNSY</a></p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+
+  <script src="/js/jquery.js"></script>
+  <script src="/js/bootstrap.js"></script>
+  <script src="/js/carlog.js"></script>
+</body>
+</html>

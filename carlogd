@@ -1,0 +1,217 @@
+#!/usr/bin/perl
+#
+#
+#
+
+use lib './lib';
+
+#
+# PERL INCLUDES
+#
+use Mojolicious::Lite;
+use Mojolicious::Plugin::Authentication;
+use Data::Dumper;
+use Digest::SHA qw(sha256_hex);
+
+#
+# LOCAL INCLUDES
+#
+use CarLog::Store::User;
+use CarLog::Store::Trip;
+use CarLog::Store::Vehicle;
+
+#
+# HELPERS
+#
+plugin 'authentication' => {
+  autoload_user => 0,
+  current_user_fn => 'authenticated_user',
+  load_user => sub {
+    my ($app, $uid) = @_;
+
+    return CarLog::Store::User->search( id => $uid )->first;
+  },
+  validate_user => sub {
+    my ($app, $user, $pass, $extradata) = @_;
+
+    my( $u ) = CarLog::Store::User->search( user_name => $user );
+
+    # match passwords
+    if( defined($u) && ( $u->password eq sha256_hex($pass) ) ) {
+      return $u->id;
+    };
+
+    return undef;
+  },
+};
+
+#
+# ROUTES
+#
+
+any 'authenticate' => sub {
+  my $self = shift;
+  my $json = Mojo::JSON->new;
+  my $data = $json->decode($self->req->body);
+
+  # collect first out of the parameters and then json decoded body
+  my $u = $self->param('u') // $data->{u} // '';
+  my $p = $self->param('p') // $data->{p} // '';
+
+  if( $self->authenticate($u, $p) ) {
+    return $self->redirect_to('/');
+  }
+
+  $self->redirect_to('/login');
+};
+
+any 'deauthenticate' => sub {
+  my $self = shift;
+
+  $self->logout;
+
+  $self->redirect_to('/login');
+};
+
+get '/login' => sub {
+  my $self = shift;
+
+  $self->render('login');
+};
+
+get '/' => sub {
+  my $self = shift;
+
+  return $self->redirect_to('/login') unless( $self->is_user_authenticated );
+
+  my $vehicles = [ CarLog::Store::Vehicle->search({
+    user_id => $self->authenticated_user->id,
+  }) ];
+
+  my $trips = [];
+
+  foreach my $v ( @$vehicles ) {
+    push @$trips, $v->trips;
+  }
+
+  $self->stash( trips => $trips, vehicles => $vehicles );
+
+  $self->render('index');
+};
+
+post '/vehicles' => sub {
+  my $self = shift;
+
+  my $v = CarLog::Store::Vehicle->create({
+    user_id => $self->authenticated_user->id,
+    registration => $self->param('registration'),
+    description  => $self->param('description'),
+  });
+
+  $self->redirect_to('/');
+};
+
+get '/vehicle/:id/trips/start' => sub {
+  my $self = shift;
+
+  my $v = CarLog::Store::Vehicle->retrieve(
+    $self->param('id')
+  );
+
+  $self->stash( vehicle => $v );
+
+  $self->render('trip-start');
+};
+
+get '/vehicle/:id/trips/stop' => sub {
+  my $self = shift;
+
+  # TODO: authorise
+
+  my $v = CarLog::Store::Vehicle->retrieve(
+    $self->param('id')
+  );
+
+  my $t = CarLog::Store::Trip->search_unfinished()->first;
+
+  $self->stash( vehicle => $v, trip => $t );
+
+  $self->render('trip-stop');
+};
+
+post '/vehicle/:id/trips' => sub {
+  my $self = shift;
+
+  my $start_date = $self->param('start-date');
+  my $start_time = $self->param('start-time');
+
+  my $start_dtg = $start_date . " " . $start_time;
+
+  my $start_odo = $self->param('start-odo');
+
+  my $business = ( $self->param('business') // '' ) eq 'on';
+  my $description = $self->param('description');
+
+  my $t = CarLog::Store::Trip->create({
+    vehicle_id  => $self->param('id'),
+    dtg_start   => $start_dtg,
+    odo_start   => $start_odo,
+    business    => $business,
+    description => $description,
+  });
+
+  $self->redirect_to('/');
+};
+
+post '/vehicle/:id/trip/:trip_id' => sub {
+  my $self = shift;
+
+  my $start_dtg;
+  my $start_date = $self->param('start-date');
+  my $start_time = $self->param('start-time');
+
+  if( defined( $start_date) && defined( $start_time ) ) {
+    $start_dtg = $start_date . " " . $start_time;
+  }
+
+  my $start_odo = $self->param('start-odo');
+
+  my $stop_dtg;
+  my $stop_date = $self->param('stop-date');
+  my $stop_time = $self->param('stop-time');
+
+  if( defined( $stop_date) && defined( $stop_time ) ) {
+    $stop_dtg = $stop_date . " " . $stop_time;
+  }
+
+  my $stop_odo = $self->param('stop-odo');
+
+  my $business = ( $self->param('business') // '' ) eq 'on';
+  my $description = $self->param('description');
+
+  my $t = CarLog::Store::Trip->retrieve( $self->param('trip_id') );
+
+  if( defined( $self->param('start-odo') ) ) {
+    $t->odo_start( $start_odo );
+  }
+
+  if( defined( $start_dtg ) ) {
+    $t->dtg_start( $start_dtg );
+  }
+
+  if( defined( $self->param('stop-odo') ) ) {
+    $t->odo_end( $stop_odo );
+  }
+
+  if( defined( $stop_dtg ) ) {
+    $t->dtg_end( $stop_dtg );
+  }
+
+  $t->update;
+
+  $self->redirect_to('/');
+};
+
+
+app->secret('carlog');
+app->start;

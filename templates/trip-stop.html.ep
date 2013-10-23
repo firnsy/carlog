@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Canvas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Bootstrap -->
+  <link href="/css/bootstrap.min.css" rel="stylesheet" media="screen">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
+  <link href="/css/carlog.css" rel="stylesheet" media="screen">
+</head>
+<body>
+  <noscript style="">
+    <div>
+      <h1 class="kp-logo">KORORA<span>PROJECT</span></h1>
+      <h3>Oops! JavaScript is not enabled!</h3>
+      <div class="hr"></div>
+      <div class="">
+        <p>In order to get the intended Korora Project experience you must enable JavaScript.</p>
+        <p>We have carefully crafted an innovative experience for Korora community and we hope you find us trustworthy enough to enable try it out in it's full glory.</p>
+        <p>Thankyou for your consideration.</p>
+      </div>
+    </div>
+  </noscript>
+  <div class="page-container">
+    <!-- navigation -->
+    <nav id="korobar" class="navbar navbar-default" role="navigation">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-primary-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <div class="navbar-brand carlog-logo-light-48"></div>
+      </div>
+
+      <!-- navigation content for toggling -->
+      <div class="collapse navbar-collapse navbar-primary-collapse">
+        <ul class="nav navbar-nav">
+          <li class="nav-home"><a href="/">Home</a></li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+          <li class="dropdown">
+          <a href="" class="dropdown-toggle" data-toggle="dropdown"><span class="icon-user"></span> <%= authenticated_user->user_name %><b class="caret"></b></a>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="/">Settings</a></li>
+              <li><a href="/deauthenticate">Logout</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="page-content">
+      <div class="hr"></div>
+      <form role="form" action="/vehicle/<%= $id %>/trip/<%= $trip->id %>" method="post">
+        <div class="container">
+          <div class="row">
+            <div class="col-sm-12">
+              <h1>Stop Trip: <%= $vehicle->registration %></h1>
+            </div>
+          </div>
+          <div class="row">
+            <div class="form-group col-sm-4">
+              <label for="start-date">Start Date</label>
+              <input type="date" class="form-control" id="start-date" name="start-date" value="<%= $trip->dtg_start->ymd %>" disabled>
+            </div>
+            <div class="form-group col-sm-4">
+              <label for="start-time">Start Time</label>
+              <input type="time" class="form-control" id="start-time" name="start-time" value="<%= $trip->dtg_start->hms %>" disabled>
+            </div>
+            <div class="form-group col-sm-4">
+              <label for="start-odo">Start ODO</label>
+              <input type="number" class="form-control" id="start-odo" name="start-odo" value="<%= $trip->odo_start %>" disabled>
+            </div>
+          </div>
+          <div class="row">
+            <div class="form-group col-sm-4">
+              <label for="stop-date">End Date</label>
+              <input type="date" class="form-control" id="stop-date" name="stop-date"  value="<%= $trip->dtg_start->ymd %>">
+            </div>
+            <div class="form-group col-sm-4">
+              <label for="stop-time">End Time</label>
+              <input type="time" class="form-control" id="stop-time" name="stop-time"  value="<%= $trip->dtg_start->hms %>">
+            </div>
+            <div class="form-group col-sm-4">
+              <label for="stop-odo">End ODO</label>
+              <input type="number" class="form-control" id="stop-odo" name="stop-odo" value="<%= $trip->odo_start %>">
+            </div>
+          </div>
+          <div class="row">
+            <div class="form-group col-sm-12">
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" id="business" name="business" <%= $trip->business ? "checked" : ""  %>> Business
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="form-group col-sm-12">
+              <label for="description">Description</label>
+              <textarea class="form-control" rows="3" id="description" name="description"><%= $trip->description %></textarea>
+            </div>
+            <div class="form-group col-sm-12">
+              <a href="/" class="btn btn-danger">Cancel</a>
+              <button type="submit" class="btn btn-success pull-right">Stop Trip</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-8 col-md-8 col-lg-8">
+          <p class="copyright">BY <a href="http://www.firnsy.com">FIRNSY</a></p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+
+  <script src="/js/jquery.js"></script>
+  <script src="/js/bootstrap.js"></script>
+  <script src="/js/carlog.js"></script>
+</body>
+</html>

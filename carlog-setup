@@ -1,0 +1,21 @@
+#!/usr/bin/perl
+
+use strict;
+
+use lib './lib';
+use feature ':5.10';
+
+use Data::Dumper;
+
+use CarLog::Store::User;
+use Digest::SHA qw(sha256_hex);
+
+
+# create firnsy
+my $firnsy = CarLog::Store::User->find_or_create({
+  user_name   => 'firnsy',
+  password    => sha256_hex( 'password' ),
+  email       => 'firnsy@gmail.com',
+  first_name  => 'Ian',
+  last_name   => 'Firns',
+});
